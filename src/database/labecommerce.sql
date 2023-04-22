@@ -36,3 +36,9 @@ INSERT INTO users(id, name, email, password)
 VALUES
 ("U001", "TEEMO", "teemo@email.com", "T01234"),
 ("U002", "APHELIOS", "aphelios@email.com", "A54321");
+
+INSERT INTO products(id, name, price, description, image_url)
+VALUES
+("P001", "Mouse gamer", 250, "Melhor mouse do mercado!", "https://picsum.photos/seed/Mouse%20gamer/400"),
+("P002", "Teclado gamer", 200, "Teclado mecânico com numpad", "https://picsum.photos/seed/Teclado%20gamer/400");
+

@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express'
 import cors from 'cors'
 import { db } from './database/knex'
-import { TUserDB } from './types'
+import { TProductsDB, TUserDB } from './types'
+import { error } from 'console'
 
 const app = express()
 
@@ -79,7 +80,7 @@ app.post("/users", async (req: Request, res: Response) => {
 
         if (name.length < 2) {
             res.status(400)
-            throw new Error("'id' deve possuir pelo menos 2 caracteres")
+            throw new Error("'name' deve possuir pelo menos 2 caracteres")
         }
 
         if (typeof email !== "string") {
@@ -141,4 +142,119 @@ app.post("/users", async (req: Request, res: Response) => {
             res.send("Erro inesperado")
         }
     }
-})
+});
+
+app.post("/products", async (req: Request, res: Response) => {
+    try {
+        const id = req.body.id;
+        const name = req.body.name;
+        const price = req.body.price as number;
+        const description = req.body.description;
+        const image_url = req.body.image_url;
+
+        if (typeof id !== "string") {
+            res.status(400)
+            throw new Error("'id' deve ser string")
+        }
+
+        if (id.length < 4) {
+            res.status(400)
+            throw new Error("'id' deve possuir pelo menos 4 caracteres")
+        }
+
+        if (typeof name !== "string") {
+            res.status(400)
+            throw new Error("'name' deve ser string")
+        }
+
+        if (name.length < 2) {
+            res.status(400)
+            throw new Error("'name' deve possuir pelo menos 2 caracteres")
+        }
+
+        if (typeof image_url !== "string") {
+            res.status(400)
+            throw new Error("'image_url' deve ser string")
+        }
+        if (typeof price !== "number") {
+            res.status(400)
+            throw new Error("'price' deve ser number")
+        }
+
+    
+
+    
+
+        if (typeof description !== "string") {
+            res.status(400)
+            throw new Error("'description' deve ser string")
+        }
+
+        
+
+        const [ userIdAlreadyExists ]: TProductsDB[] | undefined[] = await db("users").where({ id })
+
+        if (userIdAlreadyExists) {
+            res.status(400)
+            throw new Error("'id' já existe")
+        }
+        
+
+        const newProduct: TProductsDB = {
+            id,
+            name,
+            price,
+            description,
+            image_url
+        }
+
+        await db("products").insert(newProduct)
+        res.status(201).send({
+            message: "Produto criado com sucesso",
+            user: newProduct
+        })
+        
+         
+    } catch (error) {
+        console.log(error)
+
+        if (req.statusCode === 200) {
+            res.status(500)
+        }
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
+    }
+});
+
+app.get("/products", async (req: Request, res: Response) => {
+    try {
+        const searchTerm = req.query.q as string | undefined
+
+        if (searchTerm === undefined ) {
+            const result = await db("products")
+            res.status(200).send(result)
+        }else {
+            const result = await db("products").where("name", "LIKE", `%${searchTerm}%`)
+            res.status(200).send(result)
+        }
+
+        
+    } catch (error) {
+        console.log(error)
+
+        if (req.statusCode === 200) {
+            res.status(500)
+        }
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
+    }
+});
+
