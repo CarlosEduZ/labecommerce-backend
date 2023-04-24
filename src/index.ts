@@ -192,9 +192,9 @@ app.post("/products", async (req: Request, res: Response) => {
 
         
 
-        const [ userIdAlreadyExists ]: TProductsDB[] | undefined[] = await db("users").where({ id })
+        const [ productsIdAlreadyExists ]: TProductsDB[] | undefined[] = await db("products").where({ id })
 
-        if (userIdAlreadyExists) {
+        if (productsIdAlreadyExists) {
             res.status(400)
             throw new Error("'id' já existe")
         }
@@ -211,7 +211,7 @@ app.post("/products", async (req: Request, res: Response) => {
         await db("products").insert(newProduct)
         res.status(201).send({
             message: "Produto criado com sucesso",
-            user: newProduct
+            products: newProduct
         })
         
          
@@ -258,3 +258,99 @@ app.get("/products", async (req: Request, res: Response) => {
     }
 });
 
+app.put("/products/:id", async (req: Request, res: Response) => {
+    try {
+
+        const idToEdit = req.params.id;
+
+        const newId = req.body.id;
+        const newName = req.body.name;
+        const newPrice = req.body.price as number;
+        const newDescription = req.body.description;
+        const newImage_url = req.body.image_url;
+        
+
+        if(newId !== undefined){
+            if (typeof newId !== "string") {
+                res.status(400)
+                throw new Error("'id' deve ser string")
+            }
+    
+            if (newId.length < 4) {
+                res.status(400)
+                throw new Error("'id' deve possuir pelo menos 4 caracteres")
+            }
+        }
+
+        if(newName !== undefined){
+            if (typeof newName !== "string") {
+                res.status(400)
+                throw new Error("'name' deve ser string")
+            }
+    
+            if (newName.length < 2) {
+                res.status(400)
+                throw new Error("'name' deve possuir pelo menos 2 caracteres")
+            }
+        }
+
+        if(newPrice !== undefined){
+            if (typeof newPrice !== "number") {
+                res.status(400)
+                throw new Error("'price' deve ser number")
+            }
+        }
+
+        if(newDescription !== undefined){
+            if (typeof newDescription !== "string") {
+                res.status(400)
+                throw new Error("'description' deve ser string")
+            }
+        }
+
+        if(newImage_url !== undefined){ 
+            if (typeof newImage_url !== "string") {
+            res.status(400)
+            throw new Error("'image_url' deve ser string")
+        }
+    }
+
+        
+    
+    const [ products ]: TProductsDB[] | undefined[] = await db("products").where({ id: idToEdit })
+
+        if (!products) {
+            res.status(404)
+            throw new Error("'id' não encontrado")
+        }
+        
+
+        const newProduct: TProductsDB = {
+            id: newId || products.id,
+            name: newName || products.name,
+            price: newPrice || products.price,
+            description: newDescription || products.description,
+            image_url: newImage_url || products.image_url
+        }
+
+        await db("products").update(newProduct).where({ id: idToEdit})
+        res.status(200).send({
+            message: "Produto atualizado com sucesso",
+            products: newProduct
+        })
+        
+         
+    } catch (error) {
+        console.log(error)
+
+        if (req.statusCode === 200) {
+            res.status(500)
+        }
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
+    }
+});
